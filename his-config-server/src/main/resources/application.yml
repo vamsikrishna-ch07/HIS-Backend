@@ -1,0 +1,20 @@
+server:
+  port: 8888
+
+spring:
+  application:
+    name: his-config-server
+  profiles:
+    active: native # Use local filesystem instead of Git
+  cloud:
+    config:
+      server:
+        native:
+          search-locations: file:///${user.dir}/his-config-repo
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true

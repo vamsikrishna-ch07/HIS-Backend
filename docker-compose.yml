@@ -1,0 +1,89 @@
+version: '3.8'
+
+# This Docker Compose file sets up the complete HIS backend infrastructure for local development.
+# It includes third-party services like Kafka and Keycloak, as well as our custom Spring Boot services.
+# Services communicate with each other using their service names as hostnames, thanks to the Docker network.
+
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.0.1
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: confluentinc/cp-kafka:7.0.1
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka:29092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:18.0.0
+    container_name: keycloak
+    command: ['start-dev']
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - "8180:8080"
+
+  his-service-registry:
+    build:
+      context: ./his-service-registry
+      dockerfile: Dockerfile
+    container_name: his-service-registry
+    ports:
+      - "8761:8761"
+
+  his-config-server:
+    build:
+      context: ./his-config-server
+      dockerfile: Dockerfile
+    container_name: his-config-server
+    depends_on:
+      - his-service-registry
+    ports:
+      - "8888:8888"
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://his-service-registry:8761/eureka
+
+  his-api-gateway:
+    build:
+      context: ./his-api-gateway
+      dockerfile: Dockerfile
+    container_name: his-api-gateway
+    depends_on:
+      - his-service-registry
+      - his-config-server
+    ports:
+      - "8080:8080" # Exposing on 8080 for standard HTTP traffic
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://his-service-registry:8761/eureka
+      SPRING_CONFIG_IMPORT: configserver:http://his-config-server:8888
+
+  his-admin-api:
+    build:
+      context: ./his-admin-api
+      dockerfile: Dockerfile
+    container_name: his-admin-api
+    depends_on:
+      - his-service-registry
+      - his-config-server
+    ports:
+      - "8081:8081" # Exposing on a different port to avoid conflicts
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://his-service-registry:8761/eureka
+      SPRING_CONFIG_IMPORT: configserver:http://his-config-server:8888

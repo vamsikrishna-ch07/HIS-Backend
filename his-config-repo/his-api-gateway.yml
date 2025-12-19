@@ -1,0 +1,55 @@
+server:
+  port: 9090
+
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8180/realms/his-realm
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        - id: his-admin-api
+          uri: lb://his-admin-api
+          predicates:
+            - Path=/admin/**
+        - id: his-ar-api
+          uri: lb://his-ar-api
+          predicates:
+            - Path=/ar/**
+        - id: his-dc-api
+          uri: lb://his-dc-api
+          predicates:
+            - Path=/dc/**
+        - id: his-ed-api
+          uri: lb://his-ed-api
+          predicates:
+            - Path=/ed/**
+        - id: his-co-api
+          uri: lb://his-co-api
+          predicates:
+            - Path=/co/**
+        - id: his-bi-api
+          uri: lb://his-bi-api
+          predicates:
+            - Path=/bi/**
+        - id: his-reports-api
+          uri: lb://his-reports-api
+          predicates:
+            - Path=/reports/**
+        - id: his-auth-service
+          uri: lb://his-auth-service
+          predicates:
+            - Path=/auth/**
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true

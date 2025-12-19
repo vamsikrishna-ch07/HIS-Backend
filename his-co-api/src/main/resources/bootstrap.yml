@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: his-co-api
+  cloud:
+    config:
+      uri: http://localhost:8888

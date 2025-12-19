@@ -1,0 +1,31 @@
+# IDE specific files
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.settings/
+.classpath
+.project
+
+# Maven build output
+target/
+
+# Log files
+*.log
+logs/
+
+# Package files
+*.jar
+*.war
+*.ear
+
+# Other
+.DS_Store
+HELP.md
+build/
+dist/
+out/
+
+# Local environment variables
+.env
