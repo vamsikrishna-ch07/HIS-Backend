@@ -1,17 +1,17 @@
 server:
-  port: 8081
+  port: 8082
 
 spring:
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8180/realms/his-realm
+          issuer-uri: http://keycloak:8080/realms/his-realm
   datasource:
-    url: jdbc:h2:mem:admindb
+    url: jdbc:h2:mem:ardb
     driverClassName: org.h2.Driver
     username: sa
-    password: 
+    password: sa2
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
@@ -25,7 +25,7 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://his-service-registry:8761/eureka/
   instance:
     prefer-ip-address: true
 

@@ -6,12 +6,12 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8180/realms/his-realm
+          issuer-uri: http://keycloak:8080/realms/his-realm
 
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://his-service-registry:8761/eureka/
   instance:
     prefer-ip-address: true
 
