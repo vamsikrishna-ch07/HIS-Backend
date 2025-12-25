@@ -2,11 +2,13 @@ server:
   port: 8080
 
 spring:
+  main:
+    web-application-type: reactive
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://keycloak:8080/realms/his-realm
+          issuer-uri: http://keycloak:8080/realms/master
   cloud:
     gateway:
       discovery:
@@ -17,35 +19,51 @@ spring:
         - id: his-admin-api
           uri: lb://his-admin-api
           predicates:
-            - Path=/admin/**
+            - Path=/admin/**, /v3/api-docs/admin
+          filters:
+            - RewritePath=/v3/api-docs/admin(?<segment>/?.*), /api-docs
         - id: his-ar-api
           uri: lb://his-ar-api
           predicates:
-            - Path=/ar/**
+            - Path=/ar/**, /v3/api-docs/ar
+          filters:
+            - RewritePath=/v3/api-docs/ar(?<segment>/?.*), /api-docs
         - id: his-dc-api
           uri: lb://his-dc-api
           predicates:
-            - Path=/dc/**
+            - Path=/dc/**, /v3/api-docs/dc
+          filters:
+            - RewritePath=/v3/api-docs/dc(?<segment>/?.*), /api-docs
         - id: his-ed-api
           uri: lb://his-ed-api
           predicates:
-            - Path=/ed/**
+            - Path=/ed/**, /v3/api-docs/ed
+          filters:
+            - RewritePath=/v3/api-docs/ed(?<segment>/?.*), /api-docs
         - id: his-co-api
           uri: lb://his-co-api
           predicates:
-            - Path=/co/**
+            - Path=/co/**, /v3/api-docs/co
+          filters:
+            - RewritePath=/v3/api-docs/co(?<segment>/?.*), /api-docs
         - id: his-bi-api
           uri: lb://his-bi-api
           predicates:
-            - Path=/bi/**
+            - Path=/bi/**, /v3/api-docs/bi
+          filters:
+            - RewritePath=/v3/api-docs/bi(?<segment>/?.*), /api-docs
         - id: his-reports-api
           uri: lb://his-reports-api
           predicates:
-            - Path=/reports/**
+            - Path=/reports/**, /v3/api-docs/reports
+          filters:
+            - RewritePath=/v3/api-docs/reports(?<segment>/?.*), /api-docs
         - id: his-auth-service
           uri: lb://his-auth-service
           predicates:
-            - Path=/auth/**
+            - Path=/auth/**, /v3/api-docs/auth
+          filters:
+            - RewritePath=/v3/api-docs/auth(?<segment>/?.*), /api-docs
 
 eureka:
   client:
@@ -53,3 +71,23 @@ eureka:
       defaultZone: http://his-service-registry:8761/eureka/
   instance:
     prefer-ip-address: true
+
+springdoc:
+  swagger-ui:
+    urls:
+      - name: admin
+        url: /v3/api-docs/admin
+      - name: ar
+        url: /v3/api-docs/ar
+      - name: bi
+        url: /v3/api-docs/bi
+      - name: co
+        url: /v3/api-docs/co
+      - name: dc
+        url: /v3/api-docs/dc
+      - name: ed
+        url: /v3/api-docs/ed
+      - name: reports
+        url: /v3/api-docs/reports
+      - name: auth
+        url: /v3/api-docs/auth

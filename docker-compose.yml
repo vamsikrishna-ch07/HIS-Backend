@@ -1,9 +1,3 @@
-version: '3.8'
-
-# This Docker Compose file sets up the complete HIS backend infrastructure for local development.
-# It includes third-party services like Kafka and Keycloak, as well as our custom Spring Boot services.
-# Services communicate with each other using their service names as hostnames, thanks to the Docker network.
-
 services:
   zookeeper:
     image: confluentinc/cp-zookeeper:7.0.1
@@ -24,11 +18,18 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,INTERNAL:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,INTERNAL://kafka:29092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,INTERNAL://0.0.0.0:29092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   keycloak:
     image: quay.io/keycloak/keycloak:18.0.0
@@ -39,6 +40,12 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: admin
     ports:
       - "8180:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:8080/realms/master/.well-known/openid-configuration || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
 
   his-service-registry:
     build:
@@ -47,6 +54,12 @@ services:
     container_name: his-service-registry
     ports:
       - "8761:8761"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   his-config-server:
     build:
@@ -54,11 +67,16 @@ services:
       dockerfile: Dockerfile
     container_name: his-config-server
     depends_on:
-      - his-service-registry
+      his-service-registry:
+        condition: service_healthy
     ports:
       - "8888:8888"
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://his-service-registry:8761/eureka
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8888/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   his-api-gateway:
     build:
@@ -66,13 +84,10 @@ services:
       dockerfile: Dockerfile
     container_name: his-api-gateway
     depends_on:
-      - his-service-registry
-      - his-config-server
+      his-config-server:
+        condition: service_healthy
     ports:
-      - "8080:8080" # Exposing on 8080 for standard HTTP traffic
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://his-service-registry:8761/eureka
-      SPRING_CONFIG_IMPORT: configserver:http://his-config-server:8888
+      - "8080:8080"
 
   his-admin-api:
     build:
@@ -80,10 +95,92 @@ services:
       dockerfile: Dockerfile
     container_name: his-admin-api
     depends_on:
-      - his-service-registry
-      - his-config-server
+      his-config-server:
+        condition: service_healthy
     ports:
-      - "8081:8081" # Exposing on a different port to avoid conflicts
-    environment:
-      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://his-service-registry:8761/eureka
-      SPRING_CONFIG_IMPORT: configserver:http://his-config-server:8888
+      - "8081:8081"
+
+  his-ar-api:
+    build:
+      context: ./his-ar-api
+      dockerfile: Dockerfile
+    container_name: his-ar-api
+    depends_on:
+      his-config-server:
+        condition: service_healthy
+    ports:
+      - "8082:8082"
+
+  his-bi-api:
+    build:
+      context: ./his-bi-api
+      dockerfile: Dockerfile
+    container_name: his-bi-api
+    depends_on:
+      his-config-server:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    ports:
+      - "8083:8083"
+
+  his-co-api:
+    build:
+      context: ./his-co-api
+      dockerfile: Dockerfile
+    container_name: his-co-api
+    depends_on:
+      his-config-server:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    ports:
+      - "8084:8084"
+
+  his-dc-api:
+    build:
+      context: ./his-dc-api
+      dockerfile: Dockerfile
+    container_name: his-dc-api
+    depends_on:
+      his-config-server:
+        condition: service_healthy
+    ports:
+      - "8085:8085"
+
+  his-ed-api:
+    build:
+      context: ./his-ed-api
+      dockerfile: Dockerfile
+    container_name: his-ed-api
+    depends_on:
+      his-config-server:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    ports:
+      - "8086:8086"
+
+  his-reports-api:
+    build:
+      context: ./his-reports-api
+      dockerfile: Dockerfile
+    container_name: his-reports-api
+    depends_on:
+      his-config-server:
+        condition: service_healthy
+    ports:
+      - "8087:8087"
+
+  his-auth-service:
+    build:
+      context: ./his-auth-service
+      dockerfile: Dockerfile
+    container_name: his-auth-service
+    depends_on:
+      his-config-server:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    ports:
+      - "8088:8088"

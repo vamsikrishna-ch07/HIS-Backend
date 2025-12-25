@@ -8,7 +8,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://keycloak:8080/realms/his-realm
+          issuer-uri: http://keycloak:8080/realms/master
   datasource:
     url: jdbc:h2:mem:codb
     driverClassName: org.h2.Driver
@@ -34,5 +34,4 @@ eureka:
 springdoc:
   api-docs:
     path: /api-docs
-  swagger-ui:
-    path: /swagger-ui.html
+

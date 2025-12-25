@@ -3,4 +3,4 @@ spring:
     name: his-auth-service
   cloud:
     config:
-      uri: http://localhost:8888
+      uri: http://his-config-server:8888
