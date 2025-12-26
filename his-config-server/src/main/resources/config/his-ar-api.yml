@@ -1,6 +1,7 @@
 server:
   port: 8082
-  forward-headers-strategy: framework
+after dc 3rd step  forward-headers-strategy: framework
+i wan to
 
 spring:
   security:

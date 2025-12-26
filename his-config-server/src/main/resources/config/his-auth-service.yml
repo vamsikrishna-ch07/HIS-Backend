@@ -1,26 +1,12 @@
 server:
   port: 8088
 
-security:
-  resource-server:
-    enabled: false
-
 spring:
   security:
     oauth2:
-      client:
-        registration:
-          keycloak:
-            provider: keycloak
-            client-id: his-client
-            client-secret: iZlVoupO5sBM2FB1K0haqU6mOYVlX3hT # Replace with your Keycloak client secret
-            authorization-grant-type: authorization_code
-            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
-            scope: openid,profile,email
-        provider:
-          keycloak:
-            issuer-uri: http://keycloak:8080/realms/master
-            user-name-attribute: preferred_username
+      resourceserver:
+        jwt:
+          issuer-uri: http://keycloak:8080/realms/master
 
 eureka:
   client:
