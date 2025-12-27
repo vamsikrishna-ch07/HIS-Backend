@@ -1,7 +1,7 @@
 server:
   port: 8082
 after dc 3rd step  forward-headers-strategy: framework
-i wan to
+
 
 spring:
   security:
@@ -34,3 +34,4 @@ eureka:
 springdoc:
   api-docs:
     path: /api-docs
+
