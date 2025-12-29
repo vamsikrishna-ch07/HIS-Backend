@@ -1,8 +1,6 @@
 server:
   port: 8082
-after dc 3rd step  forward-headers-strategy: framework
-i wan to
-
+  forward-headers-strategy: framework
 spring:
   security:
     oauth2:
@@ -23,6 +21,8 @@ spring:
     console:
       enabled: true
       path: /h2-console
+      settings:
+        web-allow-others: true
 
 eureka:
   client:

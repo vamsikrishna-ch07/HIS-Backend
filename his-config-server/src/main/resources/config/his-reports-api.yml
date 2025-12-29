@@ -1,5 +1,6 @@
 server:
   port: 8087
+  forward-headers-strategy: framework
 
 spring:
   security:
@@ -18,4 +19,3 @@ eureka:
 springdoc:
   api-docs:
     path: /api-docs
-

@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 @Service
 public class CoServiceImpl implements CoService {
@@ -27,53 +28,58 @@ public class CoServiceImpl implements CoService {
         return edApiClient.getEligibilityDetails(appId)
                 .flatMap(response -> {
                     EligibilityDetails eligDetails = response.getData();
-                    CoTrigger trigger = new CoTrigger();
-                    trigger.setAppId(appId);
-
                     if (eligDetails == null) {
-                        trigger.setTriggerStatus("FAILED");
-                        trigger.setFailureReason("Eligibility details not found.");
-                        return coTriggerRepository.save(trigger);
+                        CoTrigger failedTrigger = CoTrigger.builder()
+                                .appId(appId)
+                                .triggerStatus("FAILED")
+                                .failureReason("Eligibility details not found.")
+                                .build();
+                        return coTriggerRepository.save(failedTrigger);
                     }
 
-                    // In a real app, this would be a more complex PDF generation
-                    String noticeContent = generateNoticeContent(eligDetails);
-                    byte[] pdf = noticeContent.getBytes();
-
-                    trigger.setNoticePdf(pdf);
-                    trigger.setTriggerStatus("COMPLETED");
-
-                    return coTriggerRepository.save(trigger);
+                    byte[] pdf = generateNoticeContent(eligDetails).getBytes();
+                    CoTrigger successTrigger = CoTrigger.builder()
+                            .appId(appId)
+                            .noticePdf(pdf)
+                            .triggerStatus("COMPLETED")
+                            .build();
+                    return coTriggerRepository.save(successTrigger);
                 })
-                .doOnSuccess(trigger -> logger.info("Successfully processed correspondence for app ID: {}", trigger.getAppId()))
-                .doOnError(error -> logger.error("Error processing correspondence for app ID: {}", appId, error));
+                .doOnSuccess(trigger -> logger.info("Correspondence processed successfully for appId={}", trigger.getAppId()))
+                .doOnError(error -> logger.error("Error processing correspondence for appId={}", appId, error))
+                .subscribeOn(Schedulers.boundedElastic());
     }
 
     @Override
     public Mono<Void> generateCorrespondence(Long appId, String status) {
-        logger.info("Generating {} correspondence via Kafka event for application ID: {}", status, appId);
-        CoTrigger trigger = new CoTrigger();
-        trigger.setAppId(appId);
-        trigger.setTriggerStatus("COMPLETED_FROM_KAFKA");
-        return coTriggerRepository.save(trigger).then();
+        logger.info("Processing Kafka {} event for appId={}", status, appId);
+        CoTrigger trigger = CoTrigger.builder()
+                .appId(appId)
+                .triggerStatus("COMPLETED_FROM_KAFKA")
+                .build();
+
+        return coTriggerRepository.save(trigger)
+                .doOnSuccess(savedTrigger -> logger.info("Successfully saved Kafka-triggered correspondence for appId={}", savedTrigger.getAppId()))
+                .doOnError(error -> logger.error("Failed to save Kafka-triggered correspondence for appId={}", appId, error))
+                .then();
     }
 
     private String generateNoticeContent(EligibilityDetails eligDetails) {
         StringBuilder sb = new StringBuilder();
         sb.append("--- NOTICE OF ELIGIBILITY DETERMINATION ---\n\n");
         sb.append("Application ID: ").append(eligDetails.getAppId()).append("\n");
-        sb.append("Determination Status: ").append(eligDetails.getPlanStatus()).append("\n\n");
+        sb.append("Status: ").append(eligDetails.getPlanStatus()).append("\n\n");
 
         if ("APPROVED".equalsIgnoreCase(eligDetails.getPlanStatus())) {
             sb.append("Plan Name: ").append(eligDetails.getPlanName()).append("\n");
-            sb.append("Benefit Amount: $").append(String.format("%.2f", eligDetails.getBenefitAmount())).append("\n");
-            sb.append("Plan Start Date: ").append(eligDetails.getStartDate()).append("\n");
-            sb.append("Plan End Date: ").append(eligDetails.getEndDate()).append("\n");
+            sb.append("Benefit Amount: ").append(eligDetails.getBenefitAmount()).append("\n");
+            sb.append("Start Date: ").append(eligDetails.getStartDate()).append("\n");
+            sb.append("End Date: ").append(eligDetails.getEndDate()).append("\n");
         } else {
-            sb.append("Reason for Denial: ").append(eligDetails.getDenialReason()).append("\n");
+            sb.append("Reason: ").append(eligDetails.getDenialReason()).append("\n");
         }
 
-        sb.append("\n--- End of Notice ---");
+        sb.append("\n--- END OF NOTICE ---");
         return sb.toString();
     }
 }

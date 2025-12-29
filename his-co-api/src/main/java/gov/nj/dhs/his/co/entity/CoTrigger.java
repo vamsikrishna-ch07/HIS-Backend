@@ -1,17 +1,18 @@
 package gov.nj.dhs.his.co.entity;
 
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "CO_TRIGGERS")
+@Table("CO_TRIGGERS")
 @Data
 @Builder
 @NoArgsConstructor
@@ -19,28 +20,26 @@ import java.time.LocalDateTime;
 public class CoTrigger {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "TRIGGER_ID")
+    @Column("TRIGGER_ID")
     private Long triggerId;
 
-    @Column(name = "APP_ID", nullable = false)
+    @Column("APP_ID")
     private Long appId;
 
-    @Lob
-    @Column(name = "NOTICE_PDF")
+    @Column("NOTICE_PDF")
     private byte[] noticePdf;
 
-    @Column(name = "TRIGGER_STATUS")
+    @Column("TRIGGER_STATUS")
     private String triggerStatus; // PENDING, COMPLETED, FAILED
 
-    @Column(name = "FAILURE_REASON")
+    @Column("FAILURE_REASON")
     private String failureReason;
 
-    @Column(name = "CREATED_DATE", updatable = false)
-    @CreationTimestamp
+    @CreatedDate
+    @Column("CREATED_DATE")
     private LocalDateTime createdDate;
 
-    @Column(name = "UPDATED_DATE")
-    @UpdateTimestamp
+    @LastModifiedDate
+    @Column("UPDATED_DATE")
     private LocalDateTime updatedDate;
 }

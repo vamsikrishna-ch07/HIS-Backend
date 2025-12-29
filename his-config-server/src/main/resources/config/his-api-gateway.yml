@@ -1,5 +1,6 @@
 server:
   port: 8080
+  forward-headers-strategy: framework
 
 spring:
   main:
@@ -91,3 +92,8 @@ springdoc:
         url: /v3/api-docs/reports
       - name: auth
         url: /v3/api-docs/auth
+  forward-headers:
+    - X-Forwarded-Host
+    - X-Forwarded-Port
+    - X-Forwarded-Proto
+    - X-Forwarded-For

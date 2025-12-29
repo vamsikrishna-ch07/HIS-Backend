@@ -1,39 +1,30 @@
-package gov.nj.dhs.his.common.security;
+package gov.nj.dhs.his.admin.config;
 
+import gov.nj.dhs.his.common.security.KeycloakRealmRoleConverter;
+import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
-import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
-@ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
-@ConditionalOnProperty(name = "spring.security.oauth2.resourceserver.jwt.issuer-uri")
-@Order(1)
 public class SecurityConfig {
 
     private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
@@ -83,24 +74,15 @@ public class SecurityConfig {
         return jwtAuthenticationConverter;
     }
 
-    static class KeycloakRealmRoleConverter implements Converter<Jwt, Collection<GrantedAuthority>> {
-        @Override
-        public Collection<GrantedAuthority> convert(Jwt jwt) {
-            final Map<String, Object> realmAccess = (Map<String, Object>) jwt.getClaims().get("realm_access");
-            if (realmAccess == null || realmAccess.isEmpty()) {
-                logger.warn("No realm_access claim found in JWT");
-                return List.of();
-            }
-            Collection<String> roles = (Collection<String>) realmAccess.get("roles");
-            logger.info("Found roles in JWT: {}", roles);
-            
-            List<GrantedAuthority> authorities = roles.stream()
-                    .map(roleName -> "ROLE_" + roleName.toUpperCase())
-                    .map(SimpleGrantedAuthority::new)
-                    .collect(Collectors.toList());
-            
-            logger.info("Mapped authorities: {}", authorities);
-            return authorities;
-        }
+    @Bean
+    public OpenAPI openAPI() {
+        return new OpenAPI()
+                .addSecurityItem(new SecurityRequirement().addList("keycloak"))
+                .components(new Components()
+                        .addSecuritySchemes("keycloak", new SecurityScheme()
+                                .name("keycloak")
+                                .type(SecurityScheme.Type.HTTP)
+                                .scheme("bearer")
+                                .bearerFormat("JWT")));
     }
 }

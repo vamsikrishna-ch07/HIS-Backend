@@ -39,5 +39,7 @@ docker exec -it keycloak curl -X POST \
 http://keycloak:8080/realms/master/protocol/openid-connect/token \
 -H "Content-Type: application/x-www-form-urlencoded" \
 -d "client_id=his-client" \
--d "client_secret=KXDPIH1aINe8Tjg5iBNzeMxpXKZ9M2Ig" \
+-d "client_secret=iHJIHU2c5tKEopgTW0wltGlkvIm982AE" \
 -d "grant_type=client_credentials"
+
+
