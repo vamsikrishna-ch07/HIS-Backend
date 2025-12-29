@@ -17,54 +17,173 @@ spring:
           enabled: true
           lower-case-service-id: true
       routes:
+        # Admin Service Routes
         - id: his-admin-api
           uri: lb://his-admin-api
           predicates:
-            - Path=/admin/**, /v3/api-docs/admin
+            - Path=/admin/**
           filters:
-            - RewritePath=/v3/api-docs/admin(?<segment>/?.*), /api-docs
+            - name: CircuitBreaker
+              args:
+                name: adminApiCB
+                fallbackUri: forward:/fallback/admin
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+        - id: his-admin-api-docs
+          uri: lb://his-admin-api
+          predicates:
+            - Path=/v3/api-docs/admin/**
+          filters:
+            - RewritePath=/v3/api-docs/admin(?<segment>/?.*), /api-docs${segment}
+
+        # AR Service Routes
         - id: his-ar-api
           uri: lb://his-ar-api
           predicates:
-            - Path=/ar/**, /v3/api-docs/ar
+            - Path=/ar/**
           filters:
-            - RewritePath=/v3/api-docs/ar(?<segment>/?.*), /api-docs
+            - name: CircuitBreaker
+              args:
+                name: arApiCB
+                fallbackUri: forward:/fallback/ar
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+        - id: his-ar-api-docs
+          uri: lb://his-ar-api
+          predicates:
+            - Path=/v3/api-docs/ar/**
+          filters:
+            - RewritePath=/v3/api-docs/ar(?<segment>/?.*), /api-docs${segment}
+
+        # DC Service Routes
         - id: his-dc-api
           uri: lb://his-dc-api
           predicates:
-            - Path=/dc/**, /v3/api-docs/dc
+            - Path=/dc/**
           filters:
-            - RewritePath=/v3/api-docs/dc(?<segment>/?.*), /api-docs
+            - name: CircuitBreaker
+              args:
+                name: dcApiCB
+                fallbackUri: forward:/fallback/dc
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+        - id: his-dc-api-docs
+          uri: lb://his-dc-api
+          predicates:
+            - Path=/v3/api-docs/dc/**
+          filters:
+            - RewritePath=/v3/api-docs/dc(?<segment>/?.*), /api-docs${segment}
+
+        # ED Service Routes
         - id: his-ed-api
           uri: lb://his-ed-api
           predicates:
-            - Path=/ed/**, /v3/api-docs/ed
+            - Path=/ed/**
           filters:
-            - RewritePath=/v3/api-docs/ed(?<segment>/?.*), /api-docs
+            - name: CircuitBreaker
+              args:
+                name: edApiCB
+                fallbackUri: forward:/fallback/ed
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+        - id: his-ed-api-docs
+          uri: lb://his-ed-api
+          predicates:
+            - Path=/v3/api-docs/ed/**
+          filters:
+            - RewritePath=/v3/api-docs/ed(?<segment>/?.*), /api-docs${segment}
+
+        # CO Service Routes
         - id: his-co-api
           uri: lb://his-co-api
           predicates:
-            - Path=/co/**, /v3/api-docs/co
+            - Path=/co/**
           filters:
-            - RewritePath=/v3/api-docs/co(?<segment>/?.*), /api-docs
+            - name: CircuitBreaker
+              args:
+                name: coApiCB
+                fallbackUri: forward:/fallback/co
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+        - id: his-co-api-docs
+          uri: lb://his-co-api
+          predicates:
+            - Path=/v3/api-docs/co/**
+          filters:
+            - RewritePath=/v3/api-docs/co(?<segment>/?.*), /api-docs${segment}
+
+        # BI Service Routes
         - id: his-bi-api
           uri: lb://his-bi-api
           predicates:
-            - Path=/bi/**, /v3/api-docs/bi
+            - Path=/bi/**
           filters:
-            - RewritePath=/v3/api-docs/bi(?<segment>/?.*), /api-docs
+            - name: CircuitBreaker
+              args:
+                name: biApiCB
+                fallbackUri: forward:/fallback/bi
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+        - id: his-bi-api-docs
+          uri: lb://his-bi-api
+          predicates:
+            - Path=/v3/api-docs/bi/**
+          filters:
+            - RewritePath=/v3/api-docs/bi(?<segment>/?.*), /api-docs${segment}
+
+        # Reports Service Routes
         - id: his-reports-api
           uri: lb://his-reports-api
           predicates:
-            - Path=/reports/**, /v3/api-docs/reports
+            - Path=/reports/**
           filters:
-            - RewritePath=/v3/api-docs/reports(?<segment>/?.*), /api-docs
+            - name: CircuitBreaker
+              args:
+                name: reportsApiCB
+                fallbackUri: forward:/fallback/reports
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+        - id: his-reports-api-docs
+          uri: lb://his-reports-api
+          predicates:
+            - Path=/v3/api-docs/reports/**
+          filters:
+            - RewritePath=/v3/api-docs/reports(?<segment>/?.*), /api-docs${segment}
+            
+        # Auth Service Routes
         - id: his-auth-service
           uri: lb://his-auth-service
           predicates:
-            - Path=/auth/**, /v3/api-docs/auth
+            - Path=/auth/**
           filters:
-            - RewritePath=/v3/api-docs/auth(?<segment>/?.*), /api-docs
+            - name: CircuitBreaker
+              args:
+                name: authServiceCB
+                fallbackUri: forward:/fallback/auth
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 20
+                redis-rate-limiter.burstCapacity: 40
+        - id: his-auth-service-docs
+          uri: lb://his-auth-service
+          predicates:
+            - Path=/v3/api-docs/auth/**
+          filters:
+            - RewritePath=/v3/api-docs/auth(?<segment>/?.*), /api-docs${segment}
 
 eureka:
   client:
@@ -97,3 +216,17 @@ springdoc:
     - X-Forwarded-Port
     - X-Forwarded-Proto
     - X-Forwarded-For
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10000
+        permittedNumberOfCallsInHalfOpenState: 3
+        minimumNumberOfCalls: 5
+  timelimiter:
+    configs:
+      default:
+        timeoutDuration: 3s

@@ -8,6 +8,20 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: http://keycloak:8080/realms/master
+  datasource:
+    url: jdbc:h2:mem:reportsdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password: sa7
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
 
 eureka:
   client:
@@ -19,3 +33,39 @@ eureka:
 springdoc:
   api-docs:
     path: /api-docs
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      arApiCB:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10000
+        permittedNumberOfCallsInHalfOpenState: 3
+        minimumNumberOfCalls: 5
+      edApiCB:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10000
+        permittedNumberOfCallsInHalfOpenState: 3
+        minimumNumberOfCalls: 5
+  timelimiter:
+    instances:
+      arApiCB:
+        timeoutDuration: 3s
+      edApiCB:
+        timeoutDuration: 3s
+  retry:
+    instances:
+      arApiCB:
+        maxAttempts: 3
+        waitDuration: 1s
+      edApiCB:
+        maxAttempts: 3
+        waitDuration: 1s
+  bulkhead:
+    instances:
+      arApiCB:
+        maxConcurrentCalls: 10
+      edApiCB:
+        maxConcurrentCalls: 10

@@ -52,6 +52,12 @@ services:
       retries: 5
       start_period: 90s
 
+  redis:
+    image: redis:alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+
   his-service-registry:
     build:
       context: ./his-service-registry
@@ -91,6 +97,8 @@ services:
     depends_on:
       his-config-server:
         condition: service_healthy
+      redis:
+        condition: service_started
     ports:
       - "8080:8080"
 

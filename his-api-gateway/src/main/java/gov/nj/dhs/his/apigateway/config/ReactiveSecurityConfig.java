@@ -23,11 +23,10 @@ public class ReactiveSecurityConfig {
 
     private static final String[] SWAGGER_WHITELIST = {
             "/v3/api-docs/**",
-            "/api-docs/**",
-            "/swagger-ui/**",
             "/swagger-ui.html",
+            "/swagger-ui/**",
             "/webjars/**",
-            "/h2-console/**"
+            "/fallback/**"
     };
 
     @Bean

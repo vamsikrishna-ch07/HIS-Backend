@@ -24,11 +24,11 @@ spring:
     console:
       enabled: true
       path: /h2-console
-      settings:
-        web-allow-others: true
   batch:
+    job:
+      enabled: false
     jdbc:
-      initialize-schema: always # Creates the Spring Batch metadata tables on startup
+      initialize-schema: always
 
 eureka:
   client:
@@ -40,3 +40,26 @@ eureka:
 springdoc:
   api-docs:
     path: /api-docs
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      edApiCB:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10000
+        permittedNumberOfCallsInHalfOpenState: 3
+        minimumNumberOfCalls: 5
+  timelimiter:
+    instances:
+      edApiCB:
+        timeoutDuration: 3s
+  retry:
+    instances:
+      edApiCB:
+        maxAttempts: 3
+        waitDuration: 1s
+  bulkhead:
+    instances:
+      edApiCB:
+        maxConcurrentCalls: 10
