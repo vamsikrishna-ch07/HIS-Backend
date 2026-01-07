@@ -1,55 +1,150 @@
-This is excellent news! The docker ps output shows that all of your services are
-running and healthy, including his-auth-service. This means all the previous startup and 
-configuration issues are resolved.
+# HIS-Backend
+Health Insurance System – Backend Microservices
 
-The new error you are seeing, DNS_PROBE_FINISHED_NXDOMAIN, is actually expected, and 
-it's the final hurdle.
-Why This Error Happens
-•
-The hostname keycloak is only valid inside the Docker network for containers to talk to each other.
-•
-Your web browser runs on your Windows machine, which is outside that Docker network. 
-It has no idea how to find a server named keycloak.
-The Solution: Use localhost
-To access any of your services from your browser, you must use localhost along 
-with the port that is mapped in your docker-compose.yml file.
-For Keycloak, the mapping is: ports: - "8180:8080". This means port 8180 on your Windows machine
-is connected to port 8080 inside the Keycloak container.
-So, the correct address for Keycloak from your browser is http://localhost:8180.
-Let's Test the Project
-Now that everything is running correctly, you can proceed with testing the full application.
-Step 1: Get the Access Token
-Open a new terminal and run the following curl command, using localhost:8180 to connect to Keycloak:
-Shell Script
-curl -d "client_id=admin-cli" -d "username=admin" -d "password=admin" -d "grant_type=password" "http://localhost:8180/realms/master/protocol/openid-connect/token"
-Step 2: Copy the Token
-From the JSON response, copy the long string value from the access_token field.
-Step 3: Authorize in Swagger
-1.
-Open your browser and go to the Swagger UI: http://localhost:8080/swagger-ui.html
-2.
-Click the Authorize button at the top right.
-3.
-In the popup, paste the token you copied into the "Value" field. Make sure to add Bearer 
-before the token (with a space after "Bearer").
-4.
-Click Authorize, then Close.
-Step 4: Test an API
-1.
-From the "Select a definition" dropdown, choose admin.
-2.
-Expand the GET /plans endpoint and click "Try it out".
-3.
-Click "Execute".
-You should now get a 200 OK response with the API data. You have successfully fixed all the issues. Congratulation
+## Project Overview
+HIS-Backend is an enterprise-grade backend system designed to manage the complete lifecycle of government health insurance programs such as Medicaid or Medicare.
+
+The system supports:
+- Insurance plan management
+- Citizen application registration
+- Eligibility determination
+- Notification and correspondence
+- Benefit issuance
+- Reporting and analytics
+
+## Architecture
+- Architecture Style: Event-Driven Microservices
+- Deployment: Docker containers using Docker Compose
+
+### Communication
+- Synchronous: REST APIs using OpenFeign and WebClient
+- Asynchronous: Apache Kafka
+
+### Security
+- OAuth2 and OpenID Connect
+- Keycloak for authentication and authorization
+- Role-Based Access Control (RBAC)
+
+## Infrastructure Services
+
+### Service Registry (Eureka)
+All services register with Eureka and communicate using service names instead of hardcoded IP addresses.
+
+### Config Server
+Centralized configuration management for all microservices.
+
+### API Gateway (Spring Cloud Gateway)
+Responsibilities:
+- Routing requests to appropriate services
+- JWT token validation
+- Circuit breakers and rate limiting
+- Swagger documentation aggregation
+
+## Business Services
+
+### Admin API (his-admin-api)
+Used by government administrators to create and manage insurance plans.
+
+Tech Stack:
+- Spring Boot
+- Spring MVC
+- JPA
+- H2 Database
+
+### Application Registration Service (his-ar-api)
+Allows citizens or caseworkers to submit insurance applications.
+
+Tech Stack:
+- Spring Boot
+- Spring MVC
+- JPA
+
+### Data Collection Service (his-dc-api)
+Collects income, education, and family details for eligibility processing.
+
+Tech Stack:
+- Spring Boot
+- Spring MVC
+- JPA
+
+### Eligibility Determination Service (his-ed-api)
+Core service that determines approval or denial of applications.
+
+Responsibilities:
+- Fetches data using Feign clients
+- Applies eligibility rules
+- Publishes results to Kafka
+
+Tech Stack:
+- Spring Boot
+- OpenFeign
+- Kafka Producer
+
+### Correspondence Service (his-co-api)
+Generates approval or denial notices.
+
+Behavior:
+- Consumes Kafka events
+- Generates PDF documents
+
+Tech Stack:
+- Spring WebFlux
+- Kafka Consumer
+
+### Benefit Issuance Service (his-bi-api)
+Processes benefit payments in bulk using scheduled jobs.
+
+Tech Stack:
+- Spring Batch
+
+### Reports Service (his-reports-api)
+Generates Excel and PDF reports for management.
+
+Tech Stack:
+- Spring WebFlux
+
+## End-to-End Flow
+1. Admin creates insurance plans.
+2. Citizen submits an application.
+3. Data is collected for eligibility.
+4. Eligibility is determined and published to Kafka.
+5. Correspondence service generates notices.
+6. Benefit issuance processes payments.
+
+## Security Implementation
+- OAuth2/OIDC with Keycloak
+- JWT-based authentication
+- Custom role mapping
+- Method-level authorization using @PreAuthorize
+
+## Resilience and Scalability
+- Resilience4j for circuit breakers and fallbacks
+- Kafka for decoupled asynchronous processing
+- WebFlux for high concurrency
+
+## Observability
+- Spring Boot Actuator
+- Eureka health monitoring
+- Gateway-based routing control
+
+## Summary
+This project demonstrates enterprise-grade backend development using modern Java, microservices, event-driven architecture, and OAuth2 security.
 
 
+=====
+/*
+* “Keycloak issues JWT tokens with roles inside the realm_access.roles claim.
+  Spring Security doesn’t recognize them by default, so we implemented a custom JwtGrantedAuthoritiesConverter to map Keycloak roles into Spring Security authorities with the ROLE_ prefix.
+  This converter is plugged into the SecurityFilterChain, enabling role-based access control using @PreAuthorize and URL-level security across all microservices
+* */
 
 
-
-===================for getting the token admin based
-curl -X POST "http://localhost:8080/realms/master/protocol/openid-connect/token" \
+========
+docker exec -it keycloak curl -X POST \
+http://keycloak:8080/realms/master/protocol/openid-connect/token \
 -H "Content-Type: application/x-www-form-urlencoded" \
 -d "client_id=his-client" \
--d "client_secret=1JTEnA4t9ysU2ReEBqsrT3nbUDTbBGaW" \
+-d "client_secret=4OlIlR3h3dgG0gsUSXThukU6f5TDhPU4" \
 -d "grant_type=client_credentials"
+
+

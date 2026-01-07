@@ -3,6 +3,7 @@ package gov.nj.dhs.his.admin.controller;
 import gov.nj.dhs.his.admin.entity.InsurancePlan;
 import gov.nj.dhs.his.admin.service.AdminService;
 import gov.nj.dhs.his.common.ApiResponse;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,7 +24,7 @@ public class AdminController {
 
     @PostMapping("/plan")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<InsurancePlan>> createPlan(@RequestBody InsurancePlan plan) {
+    public ResponseEntity<ApiResponse<InsurancePlan>> createPlan(@Valid @RequestBody InsurancePlan plan) {
         InsurancePlan savedPlan = adminService.savePlan(plan);
         ApiResponse<InsurancePlan> response = ApiResponse.<InsurancePlan>builder()
                 .status("SUCCESS")
@@ -67,7 +68,7 @@ public class AdminController {
 
     @PutMapping("/plan/{planId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<InsurancePlan>> updatePlan(@PathVariable Long planId, @RequestBody InsurancePlan planDetails) {
+    public ResponseEntity<ApiResponse<InsurancePlan>> updatePlan(@PathVariable Long planId, @Valid @RequestBody InsurancePlan planDetails) {
         InsurancePlan updatedPlan = adminService.updatePlan(planId, planDetails);
         if (updatedPlan != null) {
             ApiResponse<InsurancePlan> response = ApiResponse.<InsurancePlan>builder()
