@@ -44,5 +44,6 @@ public class SecurityConfig {
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(new BaseMvcSecurityConfig().jwtAuthenticationConverter()))
                 );
         return http.build();
+
     }
 }
