@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface CitizenApplicationRepository extends JpaRepository<CitizenApplication, Long> {
+    boolean existsBySsn(Long ssn);
 }
