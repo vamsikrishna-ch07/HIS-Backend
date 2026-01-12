@@ -1,7 +1,8 @@
+
 services:
   zookeeper:
     image: confluentinc/cp-zookeeper:7.0.1
-    container_name: zookeeper
+    # container_name: zookeeper  <-- REMOVED
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
@@ -13,7 +14,7 @@ services:
 
   kafka:
     image: confluentinc/cp-kafka:7.0.1
-    container_name: kafka
+    # container_name: kafka <-- REMOVED
     depends_on:
       - zookeeper
     ports:
@@ -38,7 +39,7 @@ services:
 
   keycloak:
     image: quay.io/keycloak/keycloak:18.0.0
-    container_name: keycloak
+    # container_name: keycloak <-- REMOVED
     command: ['start-dev']
     environment:
       KEYCLOAK_ADMIN: admin
@@ -54,7 +55,7 @@ services:
 
   redis:
     image: redis:alpine
-    container_name: redis
+    # container_name: redis <-- REMOVED
     ports:
       - "6379:6379"
 
@@ -62,7 +63,7 @@ services:
     build:
       context: ./his-service-registry
       dockerfile: Dockerfile
-    container_name: his-service-registry
+    # container_name: his-service-registry <-- REMOVED
     ports:
       - "8761:8761"
     healthcheck:
@@ -76,7 +77,7 @@ services:
     build:
       context: ./his-config-server
       dockerfile: Dockerfile
-    container_name: his-config-server
+    # container_name: his-config-server <-- REMOVED
     depends_on:
       his-service-registry:
         condition: service_healthy
@@ -93,7 +94,7 @@ services:
     build:
       context: ./his-api-gateway
       dockerfile: Dockerfile
-    container_name: his-api-gateway
+    # container_name: his-api-gateway <-- REMOVED
     depends_on:
       his-config-server:
         condition: service_healthy
@@ -106,7 +107,7 @@ services:
     build:
       context: ./his-admin-api
       dockerfile: Dockerfile
-    container_name: his-admin-api
+    # container_name: his-admin-api <-- REMOVED
     depends_on:
       his-config-server:
         condition: service_healthy
@@ -117,7 +118,7 @@ services:
     build:
       context: ./his-ar-api
       dockerfile: Dockerfile
-    container_name: his-ar-api
+    # container_name: his-ar-api <-- REMOVED
     depends_on:
       his-config-server:
         condition: service_healthy
@@ -128,7 +129,7 @@ services:
     build:
       context: ./his-bi-api
       dockerfile: Dockerfile
-    container_name: his-bi-api
+    # container_name: his-bi-api <-- REMOVED
     depends_on:
       his-config-server:
         condition: service_healthy
@@ -141,7 +142,7 @@ services:
     build:
       context: ./his-co-api
       dockerfile: Dockerfile
-    container_name: his-co-api
+    # container_name: his-co-api <-- REMOVED
     depends_on:
       his-config-server:
         condition: service_healthy
@@ -154,7 +155,7 @@ services:
     build:
       context: ./his-dc-api
       dockerfile: Dockerfile
-    container_name: his-dc-api
+    # container_name: his-dc-api <-- REMOVED
     depends_on:
       his-config-server:
         condition: service_healthy
@@ -165,7 +166,7 @@ services:
     build:
       context: ./his-ed-api
       dockerfile: Dockerfile
-    container_name: his-ed-api
+    # container_name: his-ed-api <-- REMOVED
     depends_on:
       his-config-server:
         condition: service_healthy
@@ -178,7 +179,7 @@ services:
     build:
       context: ./his-reports-api
       dockerfile: Dockerfile
-    container_name: his-reports-api
+    # container_name: his-reports-api <-- REMOVED
     depends_on:
       his-config-server:
         condition: service_healthy
@@ -189,7 +190,7 @@ services:
     build:
       context: ./his-auth-service
       dockerfile: Dockerfile
-    container_name: his-auth-service
+    # container_name: his-auth-service <-- REMOVED
     depends_on:
       his-config-server:
         condition: service_healthy
