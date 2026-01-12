@@ -1,7 +1,9 @@
 package gov.nj.dhs.his.common;
 
+import gov.nj.dhs.his.common.exception.HisException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -11,6 +13,25 @@ import java.util.List;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(HisException.class)
+    public ResponseEntity<ApiResponse<Object>> handleHisException(HisException ex) {
+        ApiResponse<Object> response = ApiResponse.builder()
+                .status("ERROR")
+                .message(ex.getMessage())
+                .build();
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiResponse<Object>> handleAccessDeniedException(AccessDeniedException ex) {
+        ApiResponse<Object> response = ApiResponse.builder()
+                .status("FORBIDDEN")
+                .message("Access is denied.")
+                .errors(List.of(ex.getMessage()))
+                .build();
+        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
+    }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Object>> handleGenericException(Exception ex) {
