@@ -9,6 +9,8 @@ import gov.nj.dhs.his.dc.repository.DcCaseRepository;
 import gov.nj.dhs.his.dc.repository.EducationRepository;
 import gov.nj.dhs.his.dc.repository.IncomeRepository;
 import gov.nj.dhs.his.dc.repository.KidRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +35,7 @@ public class DcServiceImpl implements DcService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "dc-summary", key = "#summary.appId")
     public boolean saveSummary(DcSummary summary) {
         // Find or create the case
         DcCase dcCase = caseRepository.findByAppId(summary.getAppId())
@@ -59,6 +62,7 @@ public class DcServiceImpl implements DcService {
     }
 
     @Override
+    @Cacheable(value = "dc-summary", key = "#appId")
     public DcSummary getSummary(Long appId) {
         Optional<DcCase> caseOpt = caseRepository.findByAppId(appId);
         if (caseOpt.isPresent()) {

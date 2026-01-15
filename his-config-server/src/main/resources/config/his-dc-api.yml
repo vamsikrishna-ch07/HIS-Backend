@@ -24,6 +24,12 @@ spring:
       path: /h2-console
       settings:
         web-allow-others: true
+  cache:
+    type: redis
+  data:
+    redis:
+      host: redis
+      port: 6379
 
 eureka:
   client:
@@ -35,4 +41,3 @@ eureka:
 springdoc:
   api-docs:
     path: /api-docs
-
